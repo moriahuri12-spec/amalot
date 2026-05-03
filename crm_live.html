@@ -1,0 +1,1717 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>מערכת ניהול מכירות</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:Arial,sans-serif; background:#F2FAF9; color:#0E3B38; font-size:14px; }
+
+.topbar { background:#0E3B38; color:#fff; padding:14px 28px; display:flex; align-items:center; justify-content:space-between; }
+.topbar h1 { font-size:17px; }
+.topbar span { font-size:12px; opacity:.6; }
+
+.tabs { display:flex; background:#fff; border-bottom:3px solid #C8E8E4; overflow-x:auto; padding:0 12px; gap:2px; }
+.tab { padding:12px 16px; cursor:pointer; font-size:13px; font-weight:600; color:#888; border-bottom:3px solid transparent; margin-bottom:-3px; white-space:nowrap; }
+.tab:hover { color:#0E8F7E; }
+.tab.active { color:#0E3B38; border-bottom-color:#0E3B38; }
+
+.page { display:none; padding:20px; }
+.page.active { display:block; }
+
+/* CARDS */
+.cards { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:24px; }
+.card { background:#fff; border-radius:12px; padding:18px 22px; min-width:140px; flex:1; box-shadow:0 2px 8px rgba(0,0,0,.07); border-top:4px solid #0E3B38; }
+.card.green  { border-top-color:#2E7D32; }
+.card.teal   { border-top-color:#0E8F7E; }
+.card.orange { border-top-color:#E65100; }
+.card.blue   { border-top-color:#1565C0; }
+.card.purple { border-top-color:#6A1B9A; }
+.card label  { font-size:11px; color:#999; display:block; margin-bottom:6px; }
+.card .num   { font-size:28px; font-weight:900; }
+.card.green .num  { color:#2E7D32; }
+.card.teal .num   { color:#0E8F7E; }
+.card.orange .num { color:#E65100; }
+.card.blue .num   { color:#1565C0; }
+.card.purple .num { color:#6A1B9A; }
+.card .sub   { font-size:11px; color:#bbb; margin-top:3px; }
+
+/* TABLE */
+.tbl-wrap { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.07); overflow:hidden; }
+.tbl-head { background:#0E3B38; color:#fff; padding:13px 18px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.tbl-head h3 { font-size:14px; }
+.tbl-head .actions { display:flex; gap:8px; }
+.btn { border:none; padding:7px 16px; border-radius:20px; font-size:12px; font-weight:700; cursor:pointer; }
+.btn-add  { background:#4ECFBE; color:#0E3B38; }
+.btn-add:hover { background:#3abfae; }
+.btn-sec  { background:#C8E8E4; color:#0E3B38; }
+
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { background:#F2FAF9; padding:9px 13px; text-align:right; font-size:11px; color:#666; font-weight:700; border-bottom:2px solid #C8E8E4; white-space:nowrap; }
+td { padding:9px 13px; border-bottom:1px solid #eee; vertical-align:middle; }
+tr:hover td { background:#FAFFFE; }
+tr:last-child td { border-bottom:none; }
+
+/* BADGES */
+.badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+.s-mida  { background:#FFF9C4; color:#6D5B00; }
+.s-tium  { background:#FFE0B2; color:#7B3A00; }
+.s-chat  { background:#FFAB40; color:#5D2E00; }
+.s-done  { background:#66BB6A; color:#1B4A1C; }
+.s-sik   { background:#B3E5FC; color:#01567A; }
+.s-hach  { background:#DCE775; color:#3A4700; }
+.s-tof   { background:#AED581; color:#2A4000; }
+.s-maav  { background:#4ECFBE; color:#0E3B38; }
+.s-shuch { background:#4DD0E1; color:#00414D; }
+.s-hof   { background:#66BB6A; color:#1B4A1C; }
+.s-act   { background:#C8E8E4; color:#0E3B38; }
+.s-past  { background:#FFCDD2; color:#B71C1C; }
+.s-irrel { background:#EEE; color:#888; }
+
+.status-sel { border:none; background:transparent; font-size:12px; font-weight:700; cursor:pointer; padding:4px 8px; border-radius:20px; outline:none; width:100%; }
+
+/* PROD GRID */
+.prod-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; }
+.prod-card { background:#fff; border-radius:10px; padding:14px 18px; box-shadow:0 2px 6px rgba(0,0,0,.06); border-right:4px solid #4ECFBE; }
+.prod-card .name  { font-size:11px; color:#888; margin-bottom:6px; }
+.prod-card .count { font-size:20px; font-weight:900; color:#0E3B38; }
+.prod-card .amount { font-size:11px; color:#0E8F7E; margin-top:3px; }
+
+/* SECTION */
+.section-title { font-size:13px; font-weight:700; color:#0E3B38; margin:22px 0 12px; padding-right:8px; border-right:4px solid #4ECFBE; }
+
+/* COMMISSION BOX */
+.comm-box { background:#E8F5E9; border-radius:8px; padding:10px 14px; font-size:12px; color:#2E7D32; font-weight:700; margin-top:8px; display:none; }
+
+/* MODAL */
+.overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100; align-items:center; justify-content:center; }
+.overlay.open { display:flex; }
+.modal { background:#fff; border-radius:16px; padding:28px; width:500px; max-width:96vw; max-height:92vh; overflow-y:auto; }
+.modal h2 { font-size:15px; margin-bottom:18px; color:#0E3B38; border-bottom:2px solid #C8E8E4; padding-bottom:10px; }
+.field { margin-bottom:14px; }
+.field label { display:block; font-size:11px; color:#666; margin-bottom:5px; font-weight:700; }
+.field input, .field select, .field textarea {
+  width:100%; padding:9px 12px; border:1.5px solid #C8E8E4;
+  border-radius:8px; font-size:13px; outline:none; font-family:Arial; color:#0E3B38;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color:#0E8F7E; }
+.field textarea { resize:vertical; min-height:60px; }
+.modal-btns { display:flex; gap:10px; justify-content:flex-end; margin-top:18px; }
+.btn-save   { background:#0E3B38; color:#fff; border:none; padding:9px 26px; border-radius:20px; font-size:13px; font-weight:700; cursor:pointer; }
+.btn-save:hover { background:#0E8F7E; }
+.btn-cancel { background:#eee; color:#666; border:none; padding:9px 18px; border-radius:20px; font-size:13px; cursor:pointer; }
+
+.empty-row td { text-align:center; color:#bbb; padding:32px; font-style:italic; }
+
+/* PIPELINE SUMMARY */
+.pipeline { display:flex; gap:0; margin-bottom:24px; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+.pipe-step { flex:1; padding:14px 10px; text-align:center; background:#fff; border-left:1px solid #eee; }
+.pipe-step:last-child { border-left:none; }
+.pipe-step .p-num  { font-size:26px; font-weight:900; color:#0E3B38; }
+.pipe-step .p-lbl  { font-size:10px; color:#888; margin-top:4px; }
+.pipe-step.p-pre   { border-top:4px solid #FFE0B2; }
+.pipe-step.p-post  { border-top:4px solid #4ECFBE; }
+.pipe-step.p-rel   { border-top:4px solid #4DD0E1; }
+.pipe-step.p-done  { border-top:4px solid #66BB6A; }
+
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#0E3B38; color:#fff; padding:11px 26px; border-radius:30px; font-size:13px; font-weight:700; opacity:0; transition:.3s; pointer-events:none; z-index:999; }
+.toast.show { opacity:1; }
+
+.comm-preview { background:#F0FFF4; border:1.5px solid #66BB6A; border-radius:8px; padding:10px 14px; font-size:13px; color:#2E7D32; font-weight:700; margin-top:6px; }
+.dup-btn { background:none; border:1.5px solid #C8E8E4; padding:4px 10px; border-radius:12px; font-size:11px; color:#0E8F7E; cursor:pointer; font-weight:700; }
+.dup-btn:hover { background:#C8E8E4; }
+.del-btn { background:none; border:none; cursor:pointer; color:#ddd; font-size:15px; }
+.del-btn:hover { color:#e57373; }
+.edit-btn { background:none; border:none; cursor:pointer; color:#bbb; font-size:14px; margin-left:4px; }
+.edit-btn:hover { color:#0E8F7E; }
+.search-bar { display:flex; align-items:center; gap:8px; padding:8px 0 12px; }
+.search-bar input { flex:1; padding:7px 12px; border:1.5px solid #C8E8E4; border-radius:8px; font-family:inherit; font-size:13px; outline:none; }
+.search-bar input:focus { border-color:#0E8F7E; }
+.search-bar .s-count { font-size:12px; color:#888; white-space:nowrap; }
+.row-actions { display:flex; gap:2px; justify-content:flex-end; }
+th.sortable { cursor:pointer; user-select:none; white-space:nowrap; position:relative; }
+th.sortable:hover { background:#C8E8E4; }
+th.sort-asc .sort-ind::after { content:'▲'; }
+th.sort-desc .sort-ind::after { content:'▼'; }
+.sort-ind { font-size:9px; margin-right:2px; }
+.flt-btn { background:none; border:none; cursor:pointer; font-size:11px; padding:0 2px; color:#888; vertical-align:middle; }
+.flt-btn.active { color:#0E8F7E; font-weight:700; }
+#col-filter-panel { position:fixed; background:#fff; border:1.5px solid #C8E8E4; border-radius:10px; box-shadow:0 4px 20px rgba(0,0,0,0.15); padding:10px; z-index:9999; min-width:200px; max-height:320px; display:none; flex-direction:column; gap:6px; direction:rtl; }
+#col-filter-panel .cfp-title { font-weight:700; color:#0E3B38; font-size:13px; border-bottom:1px solid #eee; padding-bottom:6px; }
+#col-filter-panel .cfp-list { overflow-y:auto; max-height:200px; display:flex; flex-direction:column; gap:4px; }
+#col-filter-panel label { display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer; padding:2px 4px; border-radius:4px; }
+#col-filter-panel label:hover { background:#F2FAF9; }
+#col-filter-panel .cfp-btns { display:flex; gap:6px; padding-top:6px; border-top:1px solid #eee; }
+#col-filter-panel .cfp-btns button { flex:1; padding:5px; border:none; border-radius:6px; cursor:pointer; font-size:12px; font-family:inherit; }
+.cfp-apply { background:#0E8F7E; color:#fff; }
+.cfp-clear { background:#eee; }
+
+/* POST TABLE - larger font, tighter rows */
+#post table { font-size:15px; }
+#post th { font-size:13px; padding:8px 14px; }
+#post td { padding:7px 14px; }
+#post .status-sel { font-size:14px; }
+
+/* DASH STAGE BUTTONS */
+.df-stage-btn { border:1.5px solid #C8E8E4; background:#F2FAF9; color:#0E3B38; padding:6px 14px; border-radius:20px; font-size:12px; font-weight:700; cursor:pointer; transition:all .15s; }
+.df-stage-btn.active { background:#0E3B38; color:#fff; border-color:#0E3B38; }
+.df-stage-btn:hover:not(.active) { border-color:#0E8F7E; }
+
+/* DASH FILTER */
+.dash-filter { background:#fff; border-radius:12px; padding:16px 20px; margin-bottom:18px; box-shadow:0 2px 8px rgba(0,0,0,.07); border-right:4px solid #0E8F7E; }
+.dash-filter h4 { font-size:13px; color:#0E3B38; margin-bottom:12px; font-weight:700; }
+.df-row { display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:12px; }
+.df-row > div { display:flex; flex-direction:column; gap:4px; }
+.df-row > div label { font-size:11px; color:#666; font-weight:700; }
+.df-row > div input[type=date] { padding:7px 10px; border:1.5px solid #C8E8E4; border-radius:8px; font-size:13px; color:#0E3B38; outline:none; }
+.df-row > div input[type=date]:focus { border-color:#0E8F7E; }
+.df-prods { display:flex; flex-wrap:wrap; gap:6px; }
+.df-prod-lbl { display:flex; align-items:center; gap:5px; font-size:11px; background:#F2FAF9; padding:5px 10px; border-radius:20px; cursor:pointer; border:1.5px solid #C8E8E4; transition:border-color .15s; }
+.df-prod-lbl:hover { border-color:#0E8F7E; }
+.df-prod-lbl input[type=checkbox] { cursor:pointer; accent-color:#0E8F7E; }
+.df-active-bar { background:#E8F5E9; border:1.5px solid #4CAF50; border-radius:8px; padding:8px 14px; font-size:12px; color:#2E7D32; font-weight:700; margin-bottom:14px; display:none; }
+</style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>📊 מערכת ניהול מכירות | סוכנת ביטוח פנסיונית</h1>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button onclick="exportAllExcel()" style="background:#1D6F42;color:#fff;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit">📊 ייצוא לאקסל</button>
+    <button onclick="exportData()" style="background:#0E8F7E;color:#fff;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit">💾 גיבוי JSON</button>
+    <label style="background:#4ECFBE;color:#fff;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px">📂 ייבוא נתונים<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+  </div>
+  <span id="clock"></span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showPage('dash1',this)">דשבורד ראשי</div>
+  <div class="tab" onclick="showPage('dash2',this)">דשבורד משני</div>
+  <div class="tab" onclick="showPage('pre',this)">🕐 טרום פגישה</div>
+  <div class="tab" onclick="showPage('post',this)">📋 בוצעה פגישה</div>
+  <div class="tab" onclick="showPage('released',this)">📤 שוחרר לחברות</div>
+  <div class="tab" onclick="showPage('issued',this)">✅ הופק</div>
+  <div class="tab" onclick="showPage('annuity',this)">💰 קצבה מיידית</div>
+  <div class="tab" onclick="showPage('future',this)">🔔 לקוחות עתידיים</div>
+  <div class="tab" onclick="showPage('payments',this)">💳 תשלומי עמלות</div>
+</div>
+
+<!-- ══ DASHBOARD 1 ══ -->
+<div id="dash1" class="page active">
+  <div class="dash-filter">
+    <h4>🔍 סינון דשבורד</h4>
+    <div class="df-row" style="margin-bottom:14px">
+      <div>
+        <label style="font-size:11px;color:#666;font-weight:700;display:block;margin-bottom:6px">שלב:</label>
+        <div style="display:flex;gap:6px">
+          <button class="df-stage-btn active" id="dfs-issued" onclick="setDash1Stage('issued')">✅ הופק</button>
+          <button class="df-stage-btn" id="dfs-released" onclick="setDash1Stage('released')">📤 שוחרר לחברות</button>
+          <button class="df-stage-btn" id="dfs-both" onclick="setDash1Stage('both')">שניהם</button>
+        </div>
+      </div>
+    </div>
+    <div class="df-row">
+      <div><label id="df-from-lbl" style="font-size:11px;color:#666;font-weight:700">מתאריך הפקה</label><input type="date" id="df-from" onchange="renderDash1()"></div>
+      <div><label id="df-to-lbl" style="font-size:11px;color:#666;font-weight:700">עד תאריך הפקה</label><input type="date" id="df-to" onchange="renderDash1()"></div>
+      <button onclick="resetDash1Filter()" style="background:#eee;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;align-self:flex-end">↺ איפוס</button>
+    </div>
+    <div style="font-size:11px;color:#666;font-weight:700;margin-bottom:8px">סינון לפי מוצר:</div>
+    <div class="df-prods" id="df-prods"></div>
+  </div>
+  <div class="section-title" style="margin:18px 0 12px">📊 סיכום 2026</div>
+  <div id="summary2026" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:24px"></div>
+  <div class="df-active-bar" id="df-active-bar"></div>
+  <div class="pipeline" id="pipeline1"></div>
+  <div class="cards" id="cards1"></div>
+  <div class="section-title" style="margin:22px 0 10px">💳 סיכום עמלות</div>
+  <div class="cards" id="comm-cards"></div>
+  <div class="section-title" id="prodGrid1-title">פירוט לפי מוצר – ציר ראשי</div>
+  <div class="prod-grid" id="prodGrid1"></div>
+</div>
+
+<!-- ══ DASHBOARD 2 ══ -->
+<div id="dash2" class="page">
+  <div class="cards" id="cards2"></div>
+  <div class="section-title">פירוט לפי מוצר – ציר משני</div>
+  <div class="prod-grid" id="prodGrid2"></div>
+</div>
+
+<!-- ══ PRE ══ -->
+<div id="pre" class="page">
+  <div class="tbl-wrap">
+    <div class="tbl-head">
+      <h3>לקוחות – טרום פגישה</h3>
+      <div class="actions"><button class="btn btn-add" onclick="openModal('pre')">+ הוספת לקוח</button></div>
+    </div>
+    <table><thead><tr><th>שם מלא</th><th>ת.ז.</th><th>סטטוס</th><th>הערות</th><th></th></tr></thead>
+    <tbody id="tbl-pre"></tbody></table>
+  </div>
+</div>
+
+<!-- ══ POST ══ -->
+<div id="post" class="page">
+  <div class="tbl-wrap">
+    <div class="tbl-head">
+      <h3>לקוחות – בוצעה פגישה</h3>
+      <div class="actions"><button class="btn btn-add" onclick="openModal('post')">+ הוספת לקוח</button></div>
+    </div>
+    <div class="search-bar"><input id="srch-post" placeholder="🔍 חיפוש לפי שם, ת.ז..." oninput="renderPost()"><span class="s-count" id="sc-post"></span></div>
+    <table><thead id="thead-post"><tr></tr></thead>
+    <tbody id="tbl-post"></tbody></table>
+  </div>
+</div>
+
+<!-- ══ RELEASED ══ -->
+<div id="released" class="page">
+  <div class="tbl-wrap">
+    <div class="tbl-head">
+      <h3>לקוחות – שוחרר לחברות (בתהליך הפקה)</h3>
+      <div class="actions"><button class="btn btn-add" onclick="openModal('released')">+ הוספה ידנית</button></div>
+    </div>
+    <div class="search-bar"><input id="srch-released" placeholder="🔍 חיפוש לפי שם, ת.ז., מוצר, חברה..." oninput="renderReleased()"><span class="s-count" id="sc-released"></span></div>
+    <table><thead><tr><th>שם מלא</th><th>ת.ז.</th><th>מוצר</th><th>חברה</th><th>תאריך הצעה</th><th>סכום</th><th>עמלה חזויה</th><th>הערות</th><th>סטטוס</th><th></th></tr></thead>
+    <tbody id="tbl-released"></tbody></table>
+  </div>
+</div>
+
+<!-- ══ ISSUED ══ -->
+<div id="issued" class="page">
+  <div class="tbl-wrap">
+    <div class="tbl-head" style="display:flex;justify-content:space-between;align-items:center">
+      <h3>פוליסות שהופקו ✅</h3>
+      <div style="display:flex;gap:8px">
+        <button onclick="openModal('issued')" style="background:#0E8F7E;color:#fff;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit">+ הוספה ידנית</button>
+        <button onclick="exportIssuedExcel()" style="background:#1D6F42;color:#fff;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit">📊 ייצוא לאקסל</button>
+      </div>
+    </div>
+    <!-- FILTERS -->
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 0 14px;border-bottom:1px solid #e0e0e0;margin-bottom:10px">
+      <span style="font-weight:600;color:#0E3B38">סינון:</span>
+      <select id="filter-month" onchange="applyIssuedFilter()" style="padding:6px 10px;border-radius:7px;border:1px solid #ccc;font-family:inherit;font-size:13px">
+        <option value="">כל החודשים</option>
+      </select>
+      <span style="font-size:13px;color:#555">או טווח:</span>
+      <input type="date" id="filter-from" onchange="applyIssuedFilter()" style="padding:6px 8px;border-radius:7px;border:1px solid #ccc;font-size:13px">
+      <span style="font-size:13px;color:#555">עד</span>
+      <input type="date" id="filter-to" onchange="applyIssuedFilter()" style="padding:6px 8px;border-radius:7px;border:1px solid #ccc;font-size:13px">
+      <button onclick="clearIssuedFilter()" style="background:#eee;border:none;padding:6px 12px;border-radius:7px;cursor:pointer;font-size:13px;font-family:inherit">✕ נקה תאריכים</button>
+      <button onclick="resetAllIssued()" style="background:#e57373;color:#fff;border:none;padding:6px 12px;border-radius:7px;cursor:pointer;font-size:13px;font-family:inherit">↺ איפוס הכל</button>
+      <span id="filter-count" style="font-size:12px;color:#888;margin-right:4px"></span>
+    </div>
+    <div class="search-bar"><input id="srch-issued" placeholder="🔍 חיפוש לפי שם, ת.ז., מוצר, חברה, מספר פוליסה..." oninput="renderIssued()"><span class="s-count" id="sc-issued"></span></div>
+    <table><thead id="thead-issued"><tr></tr></thead>
+    <tbody id="tbl-issued"></tbody></table>
+  </div>
+</div>
+
+<!-- ══ FUTURE ══ -->
+<div id="future" class="page">
+  <div class="tbl-wrap">
+    <div class="tbl-head">
+      <h3>לקוחות עתידיים</h3>
+      <div class="actions"><button class="btn btn-add" onclick="openModal('future')">+ הוספת לקוח</button></div>
+    </div>
+    <div class="search-bar"><input id="srch-future" placeholder="🔍 חיפוש לפי שם, טלפון, פוטנציאל..." oninput="renderFuture()"><span class="s-count" id="sc-future"></span></div>
+    <table><thead><tr><th>שם מלא</th><th>טלפון</th><th>תאריך לחזור</th><th>פוטנציאל</th><th>הערות</th><th>סטטוס</th><th></th></tr></thead>
+    <tbody id="tbl-future"></tbody></table>
+  </div>
+</div>
+
+<!-- ══ PAYMENTS ══ -->
+<div id="payments" class="page">
+  <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px" id="pay-summary-cards"></div>
+  <div class="tbl-wrap">
+    <div class="tbl-head" style="display:flex;justify-content:space-between;align-items:center">
+      <h3>💳 תיעוד תשלומי עמלות</h3>
+      <button onclick="openModal('payment')" style="background:#0E8F7E;color:#fff;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit">+ הוספת תשלום</button>
+    </div>
+    <table><thead><tr>
+      <th class="sortable" onclick="togglePaySort()" id="pay-date-th">תאריך קבלה <span id="pay-sort-ind">▲</span></th>
+      <th>סכום שהתקבל</th><th>הערות</th><th></th>
+    </tr></thead>
+    <tbody id="tbl-payments"></tbody></table>
+  </div>
+</div>
+
+<!-- ══ FINAPP ══ -->
+<!-- ══ ANNUITY ══ -->
+<div id="annuity" class="page">
+  <div class="tbl-wrap">
+    <div class="tbl-head" style="display:flex;justify-content:space-between;align-items:center">
+      <h3>קצבה מיידית 💰</h3>
+      <button onclick="openModal('annuity')" style="background:#0E8F7E;color:#fff;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit">+ הוספה ידנית</button>
+    </div>
+    <div class="search-bar"><input id="srch-annuity" placeholder="🔍 חיפוש לפי שם, ת.ז., חברה..." oninput="renderAnnuity()"><span class="s-count" id="sc-annuity"></span></div>
+    <table><thead><tr><th>שם מלא</th><th>ת.ז.</th><th>חברה</th><th>תאריך הפקה</th><th>סכום ניוד (₪)</th><th>עמלה</th><th>הערות</th><th></th></tr></thead>
+    <tbody id="tbl-annuity"></tbody></table>
+  </div>
+</div>
+
+<!-- ══ MODAL ══ -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="modal-title"></h2>
+    <div id="modal-body"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">ביטול</button>
+      <button class="btn-save" onclick="saveClient()">שמירה</button>
+    </div>
+  </div>
+</div>
+
+<!-- RELEASE TO COMPANY MODAL -->
+<div class="overlay" id="releaseOverlay">
+  <div class="modal">
+    <h2 id="release-title">שחרור לחברות</h2>
+    <div class="field"><label>מוצר *</label><select id="rel-product" onchange="updateRelCommPreview()"></select></div>
+    <div class="field"><label>חברה</label><select id="rel-company"></select></div>
+    <div class="field"><label>תאריך שחרור</label><input id="rel-date" type="text" placeholder="לדוג׳ 30/04/2026"></div>
+    <div class="field"><label id="rel-amt-lbl">סכום / פרמיה (₪)</label><input id="rel-amount" type="number" placeholder="0" oninput="updateRelCommPreview()"></div>
+    <div id="rel-comm-preview" style="display:none" class="comm-preview"></div>
+    <div class="field"><label>הערות</label><textarea id="rel-notes"></textarea></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeReleaseModal()">ביטול</button>
+      <button class="btn-save" onclick="confirmRelease()">שחרור לחברות ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- POLICY NUMBER MODAL -->
+<div class="overlay" id="policyOverlay">
+  <div class="modal">
+    <h2>הזן מספר פוליסה</h2>
+    <div class="field"><label>מספר פוליסה *</label><input id="policyNum" placeholder="123456789"></div>
+    <div class="field"><label>תאריך הפקה</label><input id="policyDate" type="date"></div>
+    <div class="field"><label id="policyAmtLabel">סכום / פרמיה (₪)</label><input id="policyAmt" type="number" placeholder="0"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closePolicyModal()">ביטול</button>
+      <button class="btn-save" onclick="confirmIssue()">אישור הפקה</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- CLIENT LIST PANEL -->
+<div class="overlay" id="clientListOverlay" onclick="closeClientList(event)">
+  <div class="modal" style="width:560px;max-height:80vh" onclick="event.stopPropagation()">
+    <h2 id="clientListTitle" style="margin-bottom:14px"></h2>
+    <div id="clientListBody" style="overflow-y:auto;max-height:55vh"></div>
+    <div style="margin-top:14px;text-align:left">
+      <button class="btn-cancel" onclick="closeClientList()">סגור</button>
+    </div>
+  </div>
+</div>
+
+<!-- COLUMN FILTER PANEL -->
+<div id="col-filter-panel">
+  <div class="cfp-title" id="cfp-title">סינון</div>
+  <div class="cfp-search"><input id="cfp-search" placeholder="חיפוש..." style="width:100%;padding:5px 8px;border:1px solid #ccc;border-radius:6px;font-size:12px;font-family:inherit;box-sizing:border-box" oninput="renderCfpList()"></div>
+  <label style="font-size:12px;color:#555"><input type="checkbox" id="cfp-all" onchange="toggleAllCfp()"> בחר הכל</label>
+  <div class="cfp-list" id="cfp-list"></div>
+  <div class="cfp-btns">
+    <button class="cfp-apply" onclick="applyCfp()">החל</button>
+    <button class="cfp-clear" onclick="clearCfp()">נקה סינון</button>
+    <button class="cfp-clear" onclick="closeCfp()">סגור</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════
+const PRODUCTS_MAIN = [
+  'פנסיה - שוטף','פנסיה - ניוד',
+  'פיננסים - שוטף','פיננסים - ניוד/חדפ',
+  'סיכונים - בריאות','סיכונים - מחלות קשות',
+  'סיכונים - אובדן כושר עבודה','סיכונים - ביטוח חיים',
+  'סיכונים - ביטוח חיים למשכנתא','מינוי סוכן','מינוי סוכן - המשכיות מקולקטיב','מינוי סוכן פיננסים',
+  'פיננסים ניוד - חבר'
+];
+const PRODUCTS_SEC = ['אלמנטרי','החזרי מס','כתב שירות מדיהו','פרישה'];
+const ALL_PRODUCTS  = [...PRODUCTS_MAIN, ...PRODUCTS_SEC];
+const COMPANIES = ['אינפיניטי','איילון','אלטשולר','אנליסט','הכשרה','הראל','כלל','מגדל','מיטב','מנורה','מור','פניקס'];
+const COMPANIES_ANNUITY = ['אינפיניטי','אלטשולר','הראל','כלל','מגדל','מיטב','מנורה','מור','פניקס'];
+
+const STATUS_PRE  = ['ממתין לקבלת מידעים','ממתין לתיאום פגישה','ממתין לחתימה','ממתין לפגישה','בוצעה פגישה'];
+const STATUS_POST = ['ממתין לסיכום','ממתין להחלטה','ממתין לטפסים','ממתין למעבר','ממתין לחתימה','שוחרר'];
+const STATUS_REL  = ['בתהליך הפקה','הופק'];
+const STATUS_FUT  = ['פעיל','הפך לקוח','לא רלוונטי'];
+
+const S_CLASS = {
+  'ממתין לקבלת מידעים':'s-mida','ממתין לתיאום פגישה':'s-tium',
+  'ממתין לחתימה':'s-chat','ממתין לפגישה':'s-maav','בוצעה פגישה':'s-done',
+  'ממתין לסיכום':'s-sik','ממתין להחלטה':'s-hach',
+  'ממתין לטפסים':'s-tof','ממתין למעבר':'s-maav',
+  'שוחרר':'s-shuch','בתהליך הפקה':'s-tium','הופק':'s-done',
+  'פעיל':'s-act','הפך לקוח':'s-done','לא רלוונטי':'s-irrel'
+};
+
+// ══════════════════════════════════════
+// COMMISSION CALCULATOR
+// ══════════════════════════════════════
+function calcComm(product, amount) {
+  const a = parseFloat(amount) || 0;
+  if (!a || !product) return 0;
+  if (product === 'מינוי סוכן') return a;
+  if (product === 'מינוי סוכן - המשכיות מקולקטיב') return a * 0.08;
+  if (product === 'פנסיה - שוטף')
+    return a * 12 * 0.01;          // 1% מהפרמיה השנתית
+  if (product === 'פיננסים - שוטף')
+    return 0;                       // אין עמלה
+  if (product === 'פנסיה - ניוד')
+    return (a / 1000000) * 500;    // ₪500 לכל מיליון, יחסי
+  if (product === 'פיננסים - ניוד/חדפ')
+    return (a / 1000000) * 1000;   // ₪1,000 לכל מיליון, יחסי
+  if (product.includes('סיכונים'))
+    return a * 2;                   // 2 פרמיות ראשונות
+  if (product === 'ניוד לקצבה מיידית')
+    return (a / 1000000) * 1000;   // ₪1,000 לכל מיליון, יחסי
+  if (product === 'מינוי סוכן פיננסים')
+    return (a * 0.0025) / 12;      // 0.25% מהצבירה ÷ 12
+  return 0;
+}
+
+function commLabel(product) {
+  if (!product) return 'עמלה חזויה';
+  if (product === 'מינוי סוכן') return 'עמלה = פרמיה ראשונה';
+  if (product === 'מינוי סוכן - המשכיות מקולקטיב') return 'עמלה = 8% מהפרמיה';
+  if (product === 'פנסיה - שוטף') return 'עמלה = 1% × פרמיה שנתית';
+  if (product === 'פיננסים - שוטף') return 'אין עמלה';
+  if (product === 'פנסיה - ניוד') return 'עמלה = ₪500 לכל מיליון (יחסי)';
+  if (product === 'פיננסים - ניוד/חדפ') return 'עמלה = ₪1,000 לכל מיליון (יחסי)';
+  if (product.includes('סיכונים')) return 'עמלה = 2 פרמיות';
+  return 'עמלה חזויה';
+}
+
+function amountLabel(product) {
+  if (!product) return 'סכום';
+  if (product.includes('ניוד')) return 'סכום ניוד (₪)';
+  if (product.includes('סיכונים')) return 'פרמיה חודשית (₪)';
+  if (product.includes('שוטף')) return 'פרמיה חודשית (₪)';
+  if (product === 'מינוי סוכן') return 'פרמיה ראשונה (₪)';
+  return 'סכום (₪)';
+}
+
+function fmt(n) { return n ? '₪' + Math.round(n).toLocaleString() : '–'; }
+
+// ══════════════════════════════════════
+// DB
+// ══════════════════════════════════════
+function load(k) { return JSON.parse(localStorage.getItem(k)||'[]'); }
+function save(k,v) { localStorage.setItem(k,JSON.stringify(v)); }
+
+let DB = {
+  pre:      load('crm2_pre'),
+  post:     load('crm2_post'),
+  released: load('crm2_released'),
+  issued:   load('crm2_issued'),
+  annuity:  load('crm2_annuity'),
+  future:   load('crm2_future'),
+  payments: load('crm2_payments')
+};
+
+function persist() {
+  ['pre','post','released','issued','annuity','future','payments'].forEach(k => save('crm2_'+k, DB[k]));
+}
+
+// ══════════════════════════════════════
+// TABS
+// ══════════════════════════════════════
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  renderAll();
+}
+
+// ══════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════
+function renderAll() {
+  renderPre(); renderPost(); renderReleased(); renderIssued(); renderAnnuity(); renderFuture();
+  renderPayments(); renderDash1(); renderDash2();
+}
+
+// PAYMENTS
+let paySort = 1; // 1 = ישן לחדש, -1 = חדש לישן
+
+function togglePaySort() {
+  paySort = -paySort;
+  document.getElementById('pay-sort-ind').textContent = paySort === 1 ? '▲' : '▼';
+  renderPayments();
+}
+
+function totalCommExpected() {
+  const iss = DB.issued.filter(c=>PRODUCTS_MAIN.includes(c.product));
+  const rel = DB.released.filter(c=>PRODUCTS_MAIN.includes(c.product));
+  return iss.reduce((s,c)=>s+calcComm(c.product,c.amount),0)
+       + rel.reduce((s,c)=>s+calcComm(c.product,c.amount),0);
+}
+function totalCommPaid() {
+  return DB.payments.reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+}
+
+function renderPayments() {
+  const paid       = totalCommPaid();
+  const commIss    = DB.issued.filter(c=>PRODUCTS_MAIN.includes(c.product)).reduce((s,c)=>s+calcComm(c.product,c.amount),0);
+  const commRel    = DB.released.filter(c=>PRODUCTS_MAIN.includes(c.product)).reduce((s,c)=>s+calcComm(c.product,c.amount),0);
+  const pending    = commIss - paid;
+  document.getElementById('pay-summary-cards').innerHTML = `
+    <div class="card green" style="min-width:180px"><label>✅ עמלות שהופקו</label><div class="num" style="font-size:20px">${fmt(commIss)}</div><div class="sub">פוליסות שהופקו ואושרו</div></div>
+    <div class="card teal" style="min-width:180px"><label>📤 עמלות שוחרר</label><div class="num" style="font-size:20px">${fmt(commRel)}</div><div class="sub">בתהליך הפקה</div></div>
+    <div class="card blue" style="min-width:180px"><label>💰 שולמה מהסוכנות</label><div class="num" style="font-size:20px">${fmt(paid)}</div><div class="sub">התקבל בפועל</div></div>
+    <div class="card orange" style="min-width:180px"><label>⏳ יתרה לתשלום</label><div class="num" style="font-size:20px">${fmt(pending)}</div><div class="sub">הופק פחות שולמה</div></div>`;
+
+  const t = document.getElementById('tbl-payments');
+  if (!DB.payments.length) { t.innerHTML = empty(4); return; }
+  const sorted = [...DB.payments].map((p,i)=>({p,i})).sort((a,b)=>paySort*(a.p.paydate||'').localeCompare(b.p.paydate||''));
+  let running = paid;
+  t.innerHTML = sorted.map(({p,i}) => {
+    const amt = parseFloat(p.amount)||0;
+    const rowPending = running - amt;
+    running -= amt;
+    return `<tr>
+      <td style="font-weight:700">${p.paydate ? p.paydate.split('-').reverse().join('/') : '–'}</td>
+      <td style="font-weight:700;color:#2E7D32;font-size:15px">${fmt(amt)}</td>
+      <td style="color:#888;font-size:12px">${p.notes||''}</td>
+      <td><div class="row-actions"><button class="edit-btn" onclick="editPayment(${i})">✏️</button><button class="del-btn" onclick="delPayment(${i})">✕</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+function editPayment(idx) {
+  openModal('payment', DB.payments[idx]);
+  currentEditIdx = idx;
+  document.getElementById('modal-title').textContent = 'עריכת תשלום עמלות';
+}
+
+function delPayment(idx) {
+  if (!confirm('למחוק תשלום זה?')) return;
+  DB.payments.splice(idx,1);
+  persist(); renderPayments(); renderDash1();
+  toast('🗑️ התשלום נמחק');
+}
+
+function empty(cols) { return `<tr class="empty-row"><td colspan="${cols}">אין רשומות עדיין</td></tr>`; }
+
+function statusSel(statuses, current, sheet, idx) {
+  return `<select class="status-sel ${S_CLASS[current]||''}" onchange="changeStatus('${sheet}',${idx},this.value)">
+    ${statuses.map(s=>`<option${s===current?' selected':''}>${s}</option>`).join('')}
+  </select>`;
+}
+
+// PRE
+function renderPre() {
+  const t = document.getElementById('tbl-pre');
+  if (!DB.pre.length) { t.innerHTML = empty(5); return; }
+  t.innerHTML = DB.pre.map((c,i)=>`<tr>
+    <td><strong>${c.name}</strong></td>
+    <td style="color:#888">${c.id||''}</td>
+    <td>${statusSel(STATUS_PRE, c.status, 'pre', i)}</td>
+    <td style="color:#888;font-size:12px">${c.notes||''}</td>
+    <td><div class="row-actions"><button class="edit-btn" onclick="editRow('pre',${i})">✏️</button><button class="del-btn" onclick="delRow('pre',${i})">✕</button></div></td>
+  </tr>`).join('');
+}
+
+function srch(id) { return (document.getElementById(id)?.value||'').trim().toLowerCase(); }
+function matchSearch(q, ...fields) { return !q || fields.some(f=>(f||'').toLowerCase().includes(q)); }
+function showCount(id, shown, total) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = shown < total ? `מציג ${shown} מתוך ${total}` : `סה"כ: ${total}`;
+}
+
+// POST
+const POST_COLS = [
+  {label:'שם מלא', key:'name'},
+  {label:'ת.ז.',   key:'id'},
+  {label:'סטטוס',  key:'status'},
+  {label:'',       key:''}
+];
+
+function sortPost(key) {
+  if (!key) return;
+  postSort.dir = (postSort.col === key) ? -postSort.dir : 1;
+  postSort.col = key;
+  renderPost();
+}
+
+function renderPostHeader() {
+  const tr = document.querySelector('#thead-post tr');
+  if (!tr) return;
+  tr.innerHTML = POST_COLS.map(({label,key}) => {
+    if (!key) return `<th></th>`;
+    const sortCls = postSort.col===key ? (postSort.dir===1?'sort-asc':'sort-desc') : '';
+    const hasFilter = postColFilters[key] && postColFilters[key].size > 0;
+    return `<th class="sortable ${sortCls}" onclick="sortPost('${key}')">
+      ${label}<span class="sort-ind"></span>
+      <button class="flt-btn ${hasFilter?'active':''}" onclick="event.stopPropagation();openCfp('${key}','${label}',this,'post')" title="סנן עמודה">${hasFilter?'🔽':'⬇'}</button>
+    </th>`;
+  }).join('');
+}
+
+function renderPost() {
+  renderPostHeader();
+  const t = document.getElementById('tbl-post');
+  const q = srch('srch-post');
+  if (!DB.post.length) { t.innerHTML = empty(4); showCount('sc-post',0,0); return; }
+  const {col, dir} = postSort;
+  const rows = DB.post.map((c,i)=>({c,i}))
+    .filter(({c})=>matchSearch(q,c.name,c.id,c.status))
+    .filter(({c})=>Object.entries(postColFilters).every(([k,vals])=>!vals||vals.size===0||vals.has(c[k]||'–')))
+    .sort((a,b)=>dir * (a.c[col]||'').localeCompare(b.c[col]||'','he'));
+  showCount('sc-post', rows.length, DB.post.length);
+  if (!rows.length) { t.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px">אין תוצאות</td></tr>`; return; }
+  t.innerHTML = rows.map(({c,i})=>`<tr>
+    <td><strong>${c.name}</strong></td>
+    <td style="color:#888">${c.id||''}</td>
+    <td>${statusSel(STATUS_POST, c.status, 'post', i)}</td>
+    <td><div class="row-actions"><button class="edit-btn" onclick="editRow('post',${i})">✏️</button><button class="del-btn" onclick="delRow('post',${i})">✕</button></div></td>
+  </tr>`).join('');
+}
+
+// RELEASED
+function renderReleased() {
+  const t = document.getElementById('tbl-released');
+  const q = srch('srch-released');
+  if (!DB.released.length) { t.innerHTML = empty(11); showCount('sc-released',0,0); return; }
+  const rows = DB.released.map((c,i)=>({c,i})).filter(({c})=>matchSearch(q,c.name,c.id,c.product,c.company,c.notes,c.status));
+  showCount('sc-released', rows.length, DB.released.length);
+  if (!rows.length) { t.innerHTML = `<tr><td colspan="11" style="text-align:center;color:#aaa;padding:20px">אין תוצאות</td></tr>`; return; }
+  t.innerHTML = rows.map(({c,i})=>`<tr>
+    <td><strong>${c.name}</strong></td>
+    <td style="color:#888">${c.id||''}</td>
+    <td><span class="badge s-act">${c.product||'–'}</span></td>
+    <td style="font-size:12px">${c.company||'–'}</td>
+    <td style="font-size:12px">${c.date||'–'}</td>
+    <td style="font-weight:700">${fmt(c.amount)}</td>
+    <td style="font-weight:700;color:#2E7D32">${fmt(calcComm(c.product, c.amount))}</td>
+    <td style="color:#888;font-size:12px">${c.notes||''}</td>
+    <td>${statusSel(STATUS_REL, c.status||'בתהליך הפקה', 'released', i)}</td>
+    <td><div class="row-actions"><button class="dup-btn" onclick="dupReleased(${i})">+ מוצר נוסף</button><button class="edit-btn" onclick="editRow('released',${i})">✏️</button><button class="del-btn" onclick="delRow('released',${i})">✕</button></div></td>
+  </tr>`).join('');
+}
+
+// ISSUED
+function getIssuedFiltered() {
+  const month = document.getElementById('filter-month')?.value || '';
+  const from  = document.getElementById('filter-from')?.value || '';
+  const to    = document.getElementById('filter-to')?.value || '';
+  return DB.issued.filter((c,i) => {
+    const d = c.issueDate || '';
+    if (month && !d.startsWith(month)) return false;
+    if (from && d < from) return false;
+    if (to && d > to) return false;
+    return true;
+  });
+}
+
+function updateMonthDropdown() {
+  const sel = document.getElementById('filter-month');
+  if (!sel) return;
+  const current = sel.value;
+  const months = [...new Set(DB.issued.map(c => (c.issueDate||'').slice(0,7)).filter(Boolean))].sort().reverse();
+  const heMonths = {
+    '01':'ינואר','02':'פברואר','03':'מרץ','04':'אפריל','05':'מאי','06':'יוני',
+    '07':'יולי','08':'אוגוסט','09':'ספטמבר','10':'אוקטובר','11':'נובמבר','12':'דצמבר'
+  };
+  sel.innerHTML = '<option value="">כל החודשים</option>' +
+    months.map(m => {
+      const [y,mo] = m.split('-');
+      return `<option value="${m}" ${m===current?'selected':''}>${heMonths[mo]} ${y}</option>`;
+    }).join('');
+}
+
+function applyIssuedFilter() {
+  // clear month if range used and vice versa
+  const from = document.getElementById('filter-from').value;
+  const to   = document.getElementById('filter-to').value;
+  if ((from || to) && document.getElementById('filter-month').value) {
+    document.getElementById('filter-month').value = '';
+  }
+  renderIssued();
+}
+
+function clearIssuedFilter() {
+  document.getElementById('filter-month').value = '';
+  document.getElementById('filter-from').value = '';
+  document.getElementById('filter-to').value = '';
+  renderIssued();
+}
+
+let issuedSort = {col:'issueDate', dir:-1}; // default: newest first
+let issuedColFilters = {}; // {colKey: Set of selected values}
+let postSort = {col:'name', dir:1};
+let postColFilters = {};
+let cfpCurrentCol = null;
+let cfpAllValues = [];
+let cfpCurrentTable = 'issued';
+
+function getColValue(c, key) {
+  if (key==='_comm') return fmt(calcComm(c.product,c.amount));
+  if (key==='amount') return fmt(parseFloat(c.amount)||0);
+  return (c[key]||'–');
+}
+
+function openCfp(key, label, btnEl, table) {
+  cfpCurrentCol = key;
+  cfpCurrentTable = table || 'issued';
+  document.getElementById('cfp-title').textContent = 'סינון: ' + label;
+  document.getElementById('cfp-search').value = '';
+  // collect unique values
+  cfpAllValues = [...new Set(DB[cfpCurrentTable].map(c=>getColValue(c,key)))].sort((a,b)=>a.localeCompare(b,'he'));
+  renderCfpList();
+  // position panel near button
+  const panel = document.getElementById('col-filter-panel');
+  panel.style.display = 'flex';
+  const r = btnEl.getBoundingClientRect();
+  let top = r.bottom + 4;
+  let left = r.left - 160;
+  if (left < 4) left = 4;
+  if (top + 340 > window.innerHeight) top = r.top - 344;
+  panel.style.top = top + 'px';
+  panel.style.left = left + 'px';
+}
+
+function renderCfpList() {
+  const q = document.getElementById('cfp-search').value.toLowerCase();
+  const filters = cfpCurrentTable === 'post' ? postColFilters : issuedColFilters;
+  const active = filters[cfpCurrentCol] || new Set();
+  const vals = cfpAllValues.filter(v=>!q||v.toLowerCase().includes(q));
+  document.getElementById('cfp-list').innerHTML = vals.map(v=>`
+    <label><input type="checkbox" value="${v.replace(/"/g,'&quot;')}" ${active.has(v)?'checked':''}> ${v}</label>
+  `).join('');
+  const allChecked = vals.every(v=>active.has(v));
+  document.getElementById('cfp-all').checked = allChecked && vals.length>0;
+}
+
+function toggleAllCfp() {
+  const checked = document.getElementById('cfp-all').checked;
+  document.querySelectorAll('#cfp-list input[type=checkbox]').forEach(cb=>cb.checked=checked);
+}
+
+function applyCfp() {
+  const selected = new Set();
+  document.querySelectorAll('#cfp-list input[type=checkbox]:checked').forEach(cb=>selected.add(cb.value));
+  const filters = cfpCurrentTable === 'post' ? postColFilters : issuedColFilters;
+  if (selected.size === 0 || selected.size === cfpAllValues.length) {
+    delete filters[cfpCurrentCol];
+  } else {
+    filters[cfpCurrentCol] = selected;
+  }
+  closeCfp();
+  if (cfpCurrentTable === 'post') renderPost(); else renderIssued();
+}
+
+function clearAllColFilters() {
+  issuedColFilters = {};
+  renderIssued();
+}
+
+function resetAllIssued() {
+  issuedColFilters = {};
+  issuedSort = {col:'issueDate', dir:-1};
+  document.getElementById('filter-month').value = '';
+  document.getElementById('filter-from').value = '';
+  document.getElementById('filter-to').value = '';
+  document.getElementById('srch-issued').value = '';
+  renderIssued();
+  toast('↺ כל הסינונים והמיונים אופסו');
+}
+
+function clearCfp() {
+  const filters = cfpCurrentTable === 'post' ? postColFilters : issuedColFilters;
+  delete filters[cfpCurrentCol];
+  closeCfp();
+  if (cfpCurrentTable === 'post') renderPost(); else renderIssued();
+}
+
+function closeCfp() {
+  document.getElementById('col-filter-panel').style.display = 'none';
+  cfpCurrentCol = null;
+}
+
+document.addEventListener('click', e => {
+  const panel = document.getElementById('col-filter-panel');
+  if (panel && panel.style.display==='flex' && !panel.contains(e.target) && !e.target.classList.contains('flt-btn')) {
+    closeCfp();
+  }
+});
+
+const ISSUED_COLS = [
+  {label:'שם מלא',    key:'name'},
+  {label:'ת.ז.',      key:'id'},
+  {label:'מוצר',      key:'product'},
+  {label:'חברה',      key:'company'},
+  {label:'מספר פוליסה',key:'policyNum'},
+  {label:'תאריך הפקה',key:'issueDate'},
+  {label:'סכום / פרמיה',key:'amount'},
+  {label:'עמלה',      key:'_comm'},
+  {label:'הערות',     key:'notes'},
+  {label:'',          key:''}
+];
+
+function sortIssued(key) {
+  if (!key) return;
+  issuedSort.dir = (issuedSort.col === key) ? -issuedSort.dir : 1;
+  issuedSort.col = key;
+  renderIssued();
+}
+
+function renderIssuedHeader() {
+  const tr = document.querySelector('#thead-issued tr');
+  if (!tr) return;
+  const anyFilter = Object.values(issuedColFilters).some(s=>s&&s.size>0);
+  const btn = document.getElementById('btn-clear-col-filters');
+  if (btn) btn.style.display = anyFilter ? 'inline-block' : 'none';
+  tr.innerHTML = ISSUED_COLS.map(({label,key}) => {
+    if (!key) return `<th></th>`;
+    const sortCls = issuedSort.col===key ? (issuedSort.dir===1?'sort-asc':'sort-desc') : '';
+    const hasFilter = issuedColFilters[key] && issuedColFilters[key].size > 0;
+    return `<th class="sortable ${sortCls}" onclick="sortIssued('${key}')">
+      ${label}<span class="sort-ind"></span>
+      <button class="flt-btn ${hasFilter?'active':''}" onclick="event.stopPropagation();openCfp('${key}','${label}',this)" title="סנן עמודה">${hasFilter?'🔽':'⬇'}</button>
+    </th>`;
+  }).join('');
+}
+
+function renderIssued() {
+  updateMonthDropdown();
+  renderIssuedHeader();
+  const t = document.getElementById('tbl-issued');
+  if (!DB.issued.length) { t.innerHTML = empty(11); document.getElementById('filter-count').textContent=''; return; }
+  const q = srch('srch-issued');
+  const {col, dir} = issuedSort;
+  const filtered = getIssuedFiltered()
+    .filter(c=>matchSearch(q,c.name,c.id,c.product,c.company,c.policyNum,c.notes))
+    .filter(c=>Object.entries(issuedColFilters).every(([k,vals])=>vals.has(getColValue(c,k))))
+    .sort((a,b)=>{
+      const va = col==='_comm' ? calcComm(a.product,a.amount) : col==='amount' ? (parseFloat(a.amount)||0) : (a[col]||'');
+      const vb = col==='_comm' ? calcComm(b.product,b.amount) : col==='amount' ? (parseFloat(b.amount)||0) : (b[col]||'');
+      return va < vb ? -dir : va > vb ? dir : 0;
+    });
+  const total = DB.issued.length;
+  document.getElementById('filter-count').textContent = filtered.length !== total
+    ? `מציג ${filtered.length} מתוך ${total}` : `סה"כ: ${total}`;
+  showCount('sc-issued', filtered.length, total);
+  if (!filtered.length) { t.innerHTML = `<tr><td colspan="11" style="text-align:center;color:#aaa;padding:20px">אין תוצאות לסינון זה</td></tr>`; return; }
+  // map with original index for delete
+  t.innerHTML = filtered.map(c => {
+    const i = DB.issued.indexOf(c);
+    const comm = calcComm(c.product, c.amount);
+    return `<tr>
+    <td><strong>${c.name}</strong></td>
+    <td style="color:#888">${c.id||''}</td>
+    <td><span class="badge s-done">${c.product||'–'}</span></td>
+    <td style="font-size:12px">${c.company||'–'}</td>
+    <td style="font-weight:700;color:#1565C0">${c.policyNum||'–'}</td>
+    <td style="font-size:12px">${c.issueDate||'–'}</td>
+    <td style="font-weight:700">
+      ${fmt(c.amount)}
+      <div style="font-size:10px;color:#888;font-weight:400">${amountLabel(c.product)}</div>
+    </td>
+    <td style="font-weight:700;color:#2E7D32">${fmt(comm)}</td>
+    <td style="color:#888;font-size:12px">${c.notes||''}</td>
+    <td><div class="row-actions"><button class="dup-btn" onclick="dupIssued(${i})" title="הוסף מוצר נוסף לאותו לקוח">+ מוצר נוסף</button><button class="edit-btn" onclick="editRow('issued',${i})">✏️</button><button class="del-btn" onclick="delRow('issued',${i})">✕</button></div></td>
+  </tr>`;
+  }).join('');
+}
+
+// ANNUITY
+function renderAnnuity() {
+  const t = document.getElementById('tbl-annuity');
+  const q = srch('srch-annuity');
+  if (!DB.annuity.length) { t.innerHTML = empty(8); showCount('sc-annuity',0,0); return; }
+  const rows = DB.annuity
+    .map((c,i)=>({c,i}))
+    .filter(({c})=>matchSearch(q,c.name,c.id,c.company,c.notes))
+    .sort((a,b)=>(b.c.issueDate||'').localeCompare(a.c.issueDate||''));
+  showCount('sc-annuity', rows.length, DB.annuity.length);
+  if (!rows.length) { t.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px">אין תוצאות</td></tr>`; return; }
+  t.innerHTML = rows.map(({c,i})=>`<tr>
+    <td><strong>${c.name}</strong></td>
+    <td style="color:#888">${c.id||''}</td>
+    <td style="font-size:12px">${c.company||'–'}</td>
+    <td style="font-size:12px">${c.issueDate||'–'}</td>
+    <td style="font-weight:700">${fmt(c.amount)}</td>
+    <td style="font-weight:700;color:#2E7D32">${fmt(calcComm('ניוד לקצבה מיידית', c.amount))}</td>
+    <td style="color:#888;font-size:12px">${c.notes||''}</td>
+    <td><div class="row-actions"><button class="dup-btn" onclick="dupAnnuity(${i})">+ מוצר נוסף</button><button class="edit-btn" onclick="editRow('annuity',${i})">✏️</button><button class="del-btn" onclick="delRow('annuity',${i})">✕</button></div></td>
+  </tr>`).join('');
+}
+
+// FUTURE
+function renderFuture() {
+  const t = document.getElementById('tbl-future');
+  const q = srch('srch-future');
+  if (!DB.future.length) { t.innerHTML = empty(7); showCount('sc-future',0,0); return; }
+  const today = new Date(); today.setHours(0,0,0,0);
+  const rows = DB.future.map((c,i)=>({c,i})).filter(({c})=>matchSearch(q,c.name,c.phone,c.potential,c.notes,c.status));
+  showCount('sc-future', rows.length, DB.future.length);
+  if (!rows.length) { t.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">אין תוצאות</td></tr>`; return; }
+  t.innerHTML = rows.map(({c,i})=>{
+    const d = c.calldate ? new Date(c.calldate) : null;
+    let rs = '';
+    if (d && c.status==='פעיל') {
+      if (d < today) rs='background:#FFEBEE';
+      else if ((d-today)/86400000<=7) rs='background:#FFFDE7';
+    }
+    return `<tr style="${rs}">
+      <td><strong>${c.name}</strong></td>
+      <td style="font-size:12px">${c.phone||''}</td>
+      <td style="font-size:12px">${c.calldate||''}</td>
+      <td style="font-size:12px">${c.potential||''}</td>
+      <td style="color:#888;font-size:12px">${c.notes||''}</td>
+      <td><span class="badge ${S_CLASS[c.status]||''}">${c.status}</span></td>
+      <td><div class="row-actions"><button class="edit-btn" onclick="editRow('future',${i})">✏️</button><button class="del-btn" onclick="delRow('future',${i})">✕</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// STATUS CHANGE + AUTO MOVE
+// ══════════════════════════════════════
+let pendingIssueIdx = -1;
+
+function changeStatus(sheet, idx, val) {
+  if (sheet==='pre' && val==='בוצעה פגישה') {
+    DB.post.push({...DB.pre[idx], status:'ממתין לסיכום'});
+    DB.pre.splice(idx,1);
+    persist(); renderAll();
+    toast('✅ עבר לגיליון "בוצעה פגישה"');
+    return;
+  }
+  if (sheet==='post' && val==='שוחרר') {
+    openReleaseModal(idx);
+    return;
+  }
+  if (sheet==='released' && val==='הופק') {
+    pendingIssueIdx = idx;
+    document.getElementById('policyDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('policyNum').value = '';
+    const existAmt = DB.released[idx].amount || '';
+    document.getElementById('policyAmt').value = existAmt;
+    const prod = DB.released[idx].product || '';
+    document.getElementById('policyAmtLabel').textContent = amountLabel(prod) || 'סכום / פרמיה (₪)';
+    document.getElementById('policyOverlay').classList.add('open');
+    return;
+  }
+  DB[sheet][idx].status = val;
+  persist(); renderAll();
+}
+
+let pendingReleaseIdx = -1;
+
+function openReleaseModal(idx) {
+  pendingReleaseIdx = idx;
+  const c = DB.post[idx];
+  document.getElementById('release-title').textContent = `שחרור לחברות – ${c.name}`;
+  // מוצרים
+  const prodSel = document.getElementById('rel-product');
+  prodSel.innerHTML = PRODUCTS_MAIN.map(p=>`<option>${p}</option>`).join('');
+  // חברות
+  const compSel = document.getElementById('rel-company');
+  compSel.innerHTML = `<option value="">– בחרי –</option>` + COMPANIES.map(co=>`<option>${co}</option>`).join('');
+  // איפוס שדות
+  document.getElementById('rel-date').value = '';
+  document.getElementById('rel-amount').value = '';
+  document.getElementById('rel-notes').value = '';
+  document.getElementById('rel-comm-preview').style.display = 'none';
+  updateRelCommPreview();
+  document.getElementById('releaseOverlay').classList.add('open');
+}
+
+function updateRelCommPreview() {
+  const p = document.getElementById('rel-product')?.value || '';
+  const a = document.getElementById('rel-amount')?.value || 0;
+  document.getElementById('rel-amt-lbl').textContent = amountLabel(p) || 'סכום / פרמיה (₪)';
+  const box = document.getElementById('rel-comm-preview');
+  const c = calcComm(p, a);
+  if (c > 0) { box.style.display='block'; box.textContent=`💰 עמלה חזויה: ${fmt(c)}  (${commLabel(p)})`; }
+  else { box.style.display='none'; }
+}
+
+function closeReleaseModal() {
+  document.getElementById('releaseOverlay').classList.remove('open');
+  // החזר את הסטטוס הקודם
+  if (pendingReleaseIdx >= 0) renderPost();
+  pendingReleaseIdx = -1;
+}
+
+function confirmRelease() {
+  const product = document.getElementById('rel-product').value;
+  if (!product) { alert('נא לבחור מוצר'); return; }
+  const c = DB.post[pendingReleaseIdx];
+  DB.released.push({
+    name: c.name, id: c.id,
+    product, company: document.getElementById('rel-company').value,
+    date: document.getElementById('rel-date').value,
+    amount: document.getElementById('rel-amount').value,
+    notes: document.getElementById('rel-notes').value,
+    status: 'בתהליך הפקה'
+  });
+  DB.post.splice(pendingReleaseIdx, 1);
+  pendingReleaseIdx = -1;
+  document.getElementById('releaseOverlay').classList.remove('open');
+  persist(); renderAll();
+  toast('📤 עבר לגיליון "שוחרר לחברות"!');
+}
+
+function closePolicyModal() {
+  document.getElementById('policyOverlay').classList.remove('open');
+  pendingIssueIdx = -1;
+  renderAll();
+}
+
+function confirmIssue() {
+  const num = document.getElementById('policyNum').value.trim();
+  if (!num) { alert('נא להזין מספר פוליסה'); return; }
+  const date = document.getElementById('policyDate').value;
+  const amt = document.getElementById('policyAmt').value;
+  const client = {...DB.released[pendingIssueIdx], policyNum:num, issueDate:date, amount:amt, status:'הופק'};
+  DB.issued.push(client);
+  DB.released.splice(pendingIssueIdx,1);
+  pendingIssueIdx = -1;
+  document.getElementById('policyOverlay').classList.remove('open');
+  persist(); renderAll();
+  toast('🎉 הפוליסה הועברה לגיליון "הופק"!');
+}
+
+function exportAllExcel() {
+  if (typeof XLSX === 'undefined') {
+    alert('הספרייה לא נטענה. ודאי שיש חיבור לאינטרנט ורעננו את הדף.');
+    return;
+  }
+  const wb = XLSX.utils.book_new();
+
+  const sheetDef = [
+    {
+      name: 'טרום פגישה',
+      data: DB.pre,
+      headers: ['שם מלא','ת.ז.','סטטוס','הערות'],
+      row: c => [c.name||'', c.id||'', c.status||'', c.notes||'']
+    },
+    {
+      name: 'בוצעה פגישה',
+      data: DB.post,
+      headers: ['שם מלא','ת.ז.','מוצר','חברה','סכום','עמלה חזויה','סטטוס','הערות'],
+      row: c => [c.name||'', c.id||'', c.product||'', c.company||'', c.amount||'', calcComm(c.product,c.amount)||'', c.status||'', c.notes||'']
+    },
+    {
+      name: 'שוחרר לחברות',
+      data: DB.released,
+      headers: ['שם מלא','ת.ז.','מוצר','חברה','תאריך הצעה','סכום','עמלה חזויה','סטטוס','הערות'],
+      row: c => [c.name||'', c.id||'', c.product||'', c.company||'', c.date||'', c.amount||'', calcComm(c.product,c.amount)||'', c.status||'', c.notes||'']
+    },
+    {
+      name: 'הופק',
+      data: DB.issued,
+      headers: ['שם מלא','ת.ז.','מוצר','חברה','מספר פוליסה','תאריך הפקה','סכום / פרמיה','עמלה','הערות'],
+      row: c => [c.name||'', c.id||'', c.product||'', c.company||'', c.policyNum||'', c.issueDate||'', c.amount||'', calcComm(c.product,c.amount)||'', c.notes||'']
+    },
+    {
+      name: 'קצבה מיידית',
+      data: DB.annuity,
+      headers: ['שם מלא','ת.ז.','חברה','תאריך הפקה','סכום ניוד (₪)','עמלה','הערות'],
+      row: c => [c.name||'', c.id||'', c.company||'', c.issueDate||'', c.amount||'', calcComm('ניוד לקצבה מיידית',c.amount)||'', c.notes||'']
+    },
+    {
+      name: 'לקוחות עתידיים',
+      data: DB.future,
+      headers: ['שם מלא','טלפון','תאריך לחזור','פוטנציאל','הערות','סטטוס'],
+      row: c => [c.name||'', c.phone||'', c.calldate||'', c.potential||'', c.notes||'', c.status||'']
+    }
+  ];
+
+  sheetDef.forEach(({name, data, headers, row}) => {
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...data.map(row)]);
+    // column widths
+    ws['!cols'] = headers.map(() => ({wch: 18}));
+    XLSX.utils.book_append_sheet(wb, ws, name);
+  });
+
+  const d = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `CRM_ביטוח_${d}.xlsx`);
+  toast('📊 הקובץ יוצא לאקסל בהצלחה!');
+}
+
+function exportIssuedExcel() {
+  const headers = ['שם מלא','ת.ז.','מוצר','חברה','מספר פוליסה','תאריך הפקה','סכום / פרמיה','עמלה','הערות'];
+  const rows = getIssuedFiltered().map(c => [
+    c.name||'', c.id||'', c.product||'', c.company||'',
+    c.policyNum||'', c.issueDate||'',
+    c.amount||'', calcComm(c.product, c.amount)||'', c.notes||''
+  ]);
+  const csv = '\uFEFF' + [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `פוליסות_שהופקו_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('📊 הקובץ יוצא לאקסל!');
+}
+
+function exportData() {
+  const json = JSON.stringify(DB, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const d = new Date().toISOString().slice(0,10);
+  a.download = `crm_backup_${d}.json`;
+  a.click();
+  toast('✅ הנתונים יוצאו בהצלחה!');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!data.pre || !data.post || !data.released || !data.issued || !data.future) {
+        alert('קובץ לא תקין'); return;
+      }
+      if (!confirm('ייבוא יחליף את כל הנתונים הקיימים. להמשיך?')) return;
+      Object.assign(DB, data);
+      persist(); renderAll();
+      toast('✅ הנתונים יובאו בהצלחה!');
+    } catch { alert('שגיאה בקריאת הקובץ'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function delRow(sheet, idx) {
+  if (!confirm('למחוק רשומה זו?')) return;
+  DB[sheet].splice(idx,1); persist(); renderAll();
+}
+
+// Duplicate client (same name/ID, new product)
+function dupClient(idx) {
+  const c = DB.post[idx];
+  openModal('post', {name:c.name, id:c.id});
+}
+
+function dupIssued(idx) {
+  const c = DB.issued[idx];
+  openModal('issued', {name:c.name, id:c.id, issueDate:c.issueDate});
+}
+
+function dupReleased(idx) {
+  const c = DB.released[idx];
+  openModal('released', {name:c.name, id:c.id, date:c.date});
+}
+
+function dupAnnuity(idx) {
+  const c = DB.annuity[idx];
+  openModal('annuity', {name:c.name, id:c.id, issueDate:c.issueDate});
+}
+
+// ══════════════════════════════════════
+// DASHBOARDS
+// ══════════════════════════════════════
+function allActive() { return [...DB.pre, ...DB.post, ...DB.released, ...DB.issued]; }
+
+function uniqueCount(arr) {
+  const seen = new Set();
+  arr.forEach(c => seen.add(c.id && c.id.trim() ? c.id.trim() : c.name));
+  return seen.size;
+}
+
+let dash1Stage = 'issued'; // 'issued' | 'released' | 'both'
+
+function parseDateIL(s) {
+  if (!s) return '';
+  const p = s.split('/');
+  if (p.length === 3 && p[2].length === 4)
+    return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+  return s; // fallback (already YYYY-MM-DD or unknown)
+}
+
+function setDash1Stage(stage) {
+  dash1Stage = stage;
+  ['issued','released','both'].forEach(s => {
+    const el = document.getElementById('dfs-'+s);
+    if (el) el.classList.toggle('active', s === stage);
+  });
+  const lbl = stage === 'released' ? 'תאריך הצעה' : stage === 'both' ? 'תאריך (הפקה/הצעה)' : 'תאריך הפקה';
+  const fromLbl = document.getElementById('df-from-lbl');
+  const toLbl   = document.getElementById('df-to-lbl');
+  if (fromLbl) fromLbl.textContent = 'מ' + lbl;
+  if (toLbl)   toLbl.textContent   = 'עד ' + lbl;
+  renderDash1();
+}
+
+function initDash1Filter() {
+  const container = document.getElementById('df-prods');
+  if (!container || container.children.length > 0) return;
+  const allProds = [...PRODUCTS_MAIN, 'קצבה מיידית'];
+  container.innerHTML = allProds.map((p,i) =>
+    `<label class="df-prod-lbl"><input type="checkbox" id="dfp${i}" checked onchange="renderDash1()"> ${p}</label>`
+  ).join('');
+}
+
+function getDash1Filter() {
+  const from = document.getElementById('df-from')?.value || '';
+  const to   = document.getElementById('df-to')?.value || '';
+  const allProds = [...PRODUCTS_MAIN, 'קצבה מיידית'];
+  const selected = new Set(allProds.filter((_,i) => document.getElementById('dfp'+i)?.checked !== false));
+  const isFiltered = !!from || !!to || selected.size < allProds.length || dash1Stage !== 'issued';
+  return {from, to, selected, isFiltered};
+}
+
+function resetDash1Filter() {
+  dash1Stage = 'issued';
+  ['issued','released','both'].forEach(s => {
+    const el = document.getElementById('dfs-'+s);
+    if (el) el.classList.toggle('active', s === 'issued');
+  });
+  document.getElementById('df-from').value = '';
+  document.getElementById('df-to').value = '';
+  const fromLbl = document.getElementById('df-from-lbl');
+  const toLbl   = document.getElementById('df-to-lbl');
+  if (fromLbl) fromLbl.textContent = 'מתאריך הפקה';
+  if (toLbl)   toLbl.textContent   = 'עד תאריך הפקה';
+  const allProds = [...PRODUCTS_MAIN, 'קצבה מיידית'];
+  allProds.forEach((_,i) => { const el = document.getElementById('dfp'+i); if(el) el.checked=true; });
+  renderDash1();
+}
+
+function showSummaryList(title, clients, type) {
+  document.getElementById('clientListTitle').textContent = title;
+  if (!clients.length) {
+    document.getElementById('clientListBody').innerHTML = '<p style="color:#aaa;text-align:center;padding:20px">אין לקוחות</p>';
+  } else {
+    const amtLabel = type === 'issued' ? 'תאריך הפקה' : 'תאריך הצעה';
+    document.getElementById('clientListBody').innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="background:#F2FAF9">
+          <th style="padding:8px 10px;text-align:right;border-bottom:2px solid #C8E8E4">שם מלא</th>
+          <th style="padding:8px 10px;text-align:right;border-bottom:2px solid #C8E8E4">חברה</th>
+          <th style="padding:8px 10px;text-align:right;border-bottom:2px solid #C8E8E4">סכום</th>
+          <th style="padding:8px 10px;text-align:right;border-bottom:2px solid #C8E8E4">${amtLabel}</th>
+        </tr></thead>
+        <tbody>${clients.map((c,i) => `
+          <tr style="background:${i%2===0?'#fff':'#F9FFFE'}">
+            <td style="padding:8px 10px;font-weight:700">${c.name||'–'}</td>
+            <td style="padding:8px 10px;color:#555">${c.company||'–'}</td>
+            <td style="padding:8px 10px;font-weight:700;color:#2E7D32">${fmt(c.amount)}</td>
+            <td style="padding:8px 10px;color:#888">${(type==='issued'?c.issueDate:c.date)||'–'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+  document.getElementById('clientListOverlay').classList.add('open');
+}
+
+function closeClientList(e) {
+  if (!e || e.target === document.getElementById('clientListOverlay'))
+    document.getElementById('clientListOverlay').classList.remove('open');
+}
+
+const summaryData = {};
+
+function renderDash1Summary() {
+  const yr = '2026';
+  const TARGETS = { sik: 12000, pen: 166666, niud: 14000000 };
+
+  const issYr = DB.issued.filter(c => (c.issueDate||'').startsWith(yr));
+  const relYr = DB.released.filter(c => { const d=parseDateIL(c.date||''); return !d || d.startsWith(yr); });
+  const sumAmt = arr => arr.reduce((s,c)=>s+(parseFloat(c.amount)||0),0);
+
+  const sikIss  = issYr.filter(c=>c.product&&c.product.includes('סיכונים'));
+  const sikRel  = relYr.filter(c=>c.product&&c.product.includes('סיכונים'));
+  const penIss  = issYr.filter(c=>c.product==='פנסיה - שוטף');
+  const penRel  = relYr.filter(c=>c.product==='פנסיה - שוטף');
+  const niudIss = issYr.filter(c=>c.product==='פיננסים - ניוד/חדפ');
+  const niudRel = relYr.filter(c=>c.product==='פיננסים - ניוד/חדפ');
+
+  const card = (icon, title, issArr, relArr, target, amtLbl, color, key) => {
+    summaryData[key+'_iss'] = issArr;
+    summaryData[key+'_rel'] = relArr;
+    const issAmt   = sumAmt(issArr);
+    const relAmt   = sumAmt(relArr);
+    const totalAmt = issAmt + relAmt;
+    const pct      = Math.min(Math.round((totalAmt / target) * 100), 100);
+    const over     = totalAmt >= target;
+    const barColor = pct >= 100 ? '#2E7D32' : pct >= 75 ? '#0E8F7E' : pct >= 40 ? '#F9A825' : '#E53935';
+    const remaining = target - totalAmt;
+
+    return `<div style="background:#fff;border-radius:14px;padding:22px 24px;flex:1;min-width:220px;box-shadow:0 2px 12px rgba(0,0,0,.09);border-top:5px solid ${color}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div>
+          <div style="font-size:20px;margin-bottom:2px">${icon}</div>
+          <div style="font-size:13px;font-weight:700;color:#0E3B38">${title}</div>
+        </div>
+        <div style="background:${over?'#E8F5E9':'#F2FAF9'};border-radius:20px;padding:4px 12px;font-size:13px;font-weight:900;color:${barColor}">${pct}%</div>
+      </div>
+      <div style="font-size:26px;font-weight:900;color:${color};line-height:1.1">${fmt(totalAmt)}</div>
+      <div style="font-size:11px;color:#aaa;margin-bottom:4px">${amtLbl}</div>
+      <div style="font-size:11px;color:#888;margin-bottom:12px">יעד: ${fmt(target)}</div>
+      <div style="height:12px;background:#eee;border-radius:8px;overflow:hidden;margin-bottom:8px">
+        <div style="height:100%;width:${pct}%;background:${barColor};border-radius:8px;transition:width .5s"></div>
+      </div>
+      <div style="font-size:11px;color:${over?'#2E7D32':'#888'};margin-bottom:12px;font-weight:700">
+        ${over ? '🎉 היעד הושג!' : `נותר: ${fmt(remaining)}`}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span onclick="showSummaryList('${title} – הופק ✅', summaryData['${key}_iss'], 'issued')" style="background:#E8F5E9;color:#2E7D32;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer" title="לחצי לרשימת לקוחות">✅ הופק: ${issArr.length} | ${fmt(issAmt)}</span>
+        <span onclick="showSummaryList('${title} – שוחרר 📤', summaryData['${key}_rel'], 'released')" style="background:#FFF3E0;color:#E65100;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer" title="לחצי לרשימת לקוחות">📤 שוחרר: ${relArr.length} | ${fmt(relAmt)}</span>
+      </div>
+    </div>`;
+  };
+
+  document.getElementById('summary2026').innerHTML =
+    card('🛡️', 'סיכונים',          sikIss,  sikRel,  TARGETS.sik,  'סה"כ פרמיות',   '#6A1B9A', 'sik') +
+    card('💰', 'פנסיה שוטף',       penIss,  penRel,  TARGETS.pen,  'סה"כ פרמיות',   '#1565C0', 'pen') +
+    card('🏦', 'פיננסים ניוד/חדפ', niudIss, niudRel, TARGETS.niud, 'סה"כ סכום ניוד','#0E8F7E', 'niud');
+}
+
+function renderDash1() {
+  initDash1Filter();
+  renderDash1Summary();
+  const {from, to, selected, isFiltered} = getDash1Filter();
+  const stage = dash1Stage;
+
+  const issDateOk = c => {
+    const d = c.issueDate || '';
+    if (from && d < from) return false;
+    if (to   && d > to)   return false;
+    return true;
+  };
+  const relDateOk = c => {
+    const d = parseDateIL(c.date || '');
+    if (from && d < from) return false;
+    if (to   && d > to)   return false;
+    return true;
+  };
+
+  // Pipeline: always unfiltered totals
+  const relAll = DB.released.filter(c=>PRODUCTS_MAIN.includes(c.product));
+  const issAll = DB.issued.filter(c=>PRODUCTS_MAIN.includes(c.product));
+  document.getElementById('pipeline1').innerHTML = `
+    <div class="pipe-step p-pre"><div class="p-num">${DB.pre.length}</div><div class="p-lbl">טרום פגישה</div></div>
+    <div class="pipe-step p-post"><div class="p-num">${DB.post.filter(c=>PRODUCTS_MAIN.includes(c.product)).length}</div><div class="p-lbl">בוצעה פגישה</div></div>
+    <div class="pipe-step p-rel"><div class="p-num">${relAll.length}</div><div class="p-lbl">שוחרר לחברות</div></div>
+    <div class="pipe-step p-done"><div class="p-num">${issAll.length}</div><div class="p-lbl">הופק ✅</div></div>`;
+
+  // Filter by stage + date + product
+  const showIss = stage === 'issued' || stage === 'both';
+  const showRel = stage === 'released' || stage === 'both';
+
+  const iss = showIss ? issAll.filter(c => issDateOk(c) && selected.has(c.product)) : [];
+  const ann = showIss && selected.has('קצבה מיידית') ? DB.annuity.filter(issDateOk) : [];
+  const rel = showRel ? relAll.filter(c => relDateOk(c) && selected.has(c.product)) : [];
+
+  const issSikun = iss.filter(c=>c.product && c.product.includes('סיכונים'));
+  const all = allActive().filter(c=>PRODUCTS_MAIN.includes(c.product));
+
+  const annuityComm = ann.reduce((s,c)=>s+calcComm('ניוד לקצבה מיידית',c.amount),0);
+  const issComm = iss.reduce((s,c)=>s+calcComm(c.product,c.amount),0) + annuityComm;
+  const relComm = rel.reduce((s,c)=>s+calcComm(c.product,c.amount),0);
+
+  // Active bar
+  const bar = document.getElementById('df-active-bar');
+  if (isFiltered) {
+    let msg = '⚠️ מציג נתונים מסוננים';
+    if (stage !== 'issued') msg += ` | שלב: ${stage === 'released' ? 'שוחרר לחברות' : 'הופק + שוחרר'}`;
+    if (from || to) msg += ` | תאריך: ${from||'—'} עד ${to||'—'}`;
+    if (selected.size < PRODUCTS_MAIN.length + 1) msg += ` | ${selected.size} מוצרים נבחרו`;
+    bar.textContent = msg;
+    bar.style.display = 'block';
+  } else {
+    bar.style.display = 'none';
+  }
+
+  // Cards
+  const card2Label = stage === 'released' ? 'שורות שוחרר לחברות' : 'פוליסות סיכונים שהופקו';
+  const card2Value = stage === 'released' ? rel.length : issSikun.length;
+  const card3Label = stage === 'released' ? 'עמלות חזויות (שוחרר)' : 'עמלות שהופקו';
+  const card3Value = stage === 'released' ? relComm : issComm;
+  const card4Label = stage === 'both' ? 'עמלות שוחרר (חזוי)' : (stage === 'issued' ? 'עמלות בדרך (שוחרר)' : '');
+  const card4Value = (stage === 'both' || stage === 'issued') ? relComm : null;
+
+  document.getElementById('cards1').innerHTML = `
+    <div class="card"><label>סה"כ לקוחות (ראשי)</label><div class="num">${uniqueCount(all)}</div></div>
+    <div class="card green"><label>${card2Label}</label><div class="num">${card2Value}</div></div>`;
+
+  // ProdGrid
+  const prodsToShow = PRODUCTS_MAIN.filter(p => selected.has(p));
+  document.getElementById('prodGrid1').innerHTML = prodsToShow.map(p => {
+    const iCnt  = iss.filter(c=>c.product===p).length;
+    const rCnt  = rel.filter(c=>c.product===p).length;
+    const iComm = iss.filter(c=>c.product===p).reduce((s,c)=>s+calcComm(p,c.amount),0);
+    const rComm = rel.filter(c=>c.product===p).reduce((s,c)=>s+calcComm(p,c.amount),0);
+    const iAmt  = iss.filter(c=>c.product===p).reduce((s,c)=>s+(parseFloat(c.amount)||0),0);
+    const rAmt  = rel.filter(c=>c.product===p).reduce((s,c)=>s+(parseFloat(c.amount)||0),0);
+
+    let detail = '';
+    if (p.includes('סיכונים')) {
+      if (showIss && iCnt) detail += `הופק: ${iCnt} | פרמיה: ${fmt(iAmt)} | עמלה: ${fmt(iComm)}  `;
+      if (showRel && rCnt) detail += `שוחרר: ${rCnt} | פרמיה: ${fmt(rAmt)}`;
+    } else if (p === 'פנסיה - שוטף') {
+      if (showIss && iCnt) detail += `הופק: ${iCnt} | סכום שוטף: ${fmt(iAmt)} | עמלה: ${fmt(iComm)}  `;
+      if (showRel && rCnt) detail += `שוחרר: ${rCnt} | סכום: ${fmt(rAmt)}`;
+    } else if (p === 'פיננסים - ניוד/חדפ') {
+      if (showIss && iCnt) detail += `הופק: ${iCnt} | סה"כ ניוד: ${fmt(iAmt)} | עמלה: ${fmt(iComm)}  `;
+      if (showRel && rCnt) detail += `שוחרר: ${rCnt} | סכום: ${fmt(rAmt)}`;
+    } else {
+      if (showIss && iCnt) detail += `הופק: ${iCnt} | עמלות: ${fmt(iComm)}  `;
+      if (showRel && rCnt) detail += `שוחרר: ${rCnt} | עמלות חזויות: ${fmt(rComm)}`;
+    }
+    if (!detail) detail = 'אין נתונים בטווח זה';
+
+    return `<div class="prod-card">
+      <div class="name">${p}</div>
+      <div class="amount" style="font-size:11px;line-height:1.8">${detail}</div>
+    </div>`;
+  }).join('');
+
+  // Commission summary cards
+  const allIss = showIss ? DB.issued.filter(c=>PRODUCTS_MAIN.includes(c.product)&&issDateOk(c)&&selected.has(c.product)) : [];
+  const allRel = showRel ? DB.released.filter(c=>PRODUCTS_MAIN.includes(c.product)&&relDateOk(c)&&selected.has(c.product)) : [];
+  const totalExpected = allIss.reduce((s,c)=>s+calcComm(c.product,c.amount),0)
+                      + allRel.reduce((s,c)=>s+calcComm(c.product,c.amount),0);
+  const totalPaid     = totalCommPaid();
+  // Commission summary - single clean row
+  const allIssuedMain = DB.issued.filter(c=>PRODUCTS_MAIN.includes(c.product));
+  const allRelMain    = DB.released.filter(c=>PRODUCTS_MAIN.includes(c.product));
+  const commIssued    = allIssuedMain.reduce((s,c)=>s+calcComm(c.product,c.amount),0);
+  const commNotIssued = allRelMain.reduce((s,c)=>s+calcComm(c.product,c.amount),0);
+  const totalPending  = commIssued - totalPaid;
+  document.getElementById('comm-cards').innerHTML = `
+    <div class="card teal"><label>📤 עמלות – טרם הופק</label><div class="num" style="font-size:20px">${fmt(commNotIssued)}</div><div class="sub">שוחרר, בתהליך הפקה</div></div>
+    <div class="card green"><label>✅ עמלות – הופק</label><div class="num" style="font-size:20px">${fmt(commIssued)}</div><div class="sub">פוליסות שהופקו ואושרו</div></div>
+    <div class="card purple"><label>💎 סה"כ עמלות</label><div class="num" style="font-size:20px">${fmt(commIssued+commNotIssued)}</div><div class="sub">הופק + טרם הופק</div></div>
+    <div class="card blue"><label>💰 שולמה מהסוכנות</label><div class="num" style="font-size:20px">${fmt(totalPaid)}</div><div class="sub">התקבל בפועל</div></div>
+    <div class="card orange"><label>⏳ טרם שולמה</label><div class="num" style="font-size:20px">${fmt(totalPending)}</div><div class="sub">ממתין לתשלום</div></div>`;
+}
+
+function renderDash2() {
+  const all = allActive().filter(c=>PRODUCTS_SEC.includes(c.product));
+  const iss = DB.issued.filter(c=>PRODUCTS_SEC.includes(c.product));
+  const rel = DB.released.filter(c=>PRODUCTS_SEC.includes(c.product));
+  const totalComm = iss.reduce((s,c)=>s+calcComm(c.product,c.amount),0);
+  const pendComm  = rel.reduce((s,c)=>s+calcComm(c.product,c.amount),0);
+
+  document.getElementById('cards2').innerHTML = `
+    <div class="card"><label>סה"כ לקוחות (משני)</label><div class="num">${uniqueCount(all)}</div></div>
+    <div class="card green"><label>הופק</label><div class="num">${iss.length}</div></div>
+    <div class="card teal"><label>עמלות שהופקו</label><div class="num" style="font-size:18px">${fmt(totalComm)}</div></div>
+    <div class="card orange"><label>עמלות בדרך</label><div class="num" style="font-size:18px">${fmt(pendComm)}</div></div>`;
+
+  document.getElementById('prodGrid2').innerHTML = PRODUCTS_SEC.map(p=>{
+    const cnt = allActive().filter(c=>c.product===p).length;
+    const iCnt = DB.issued.filter(c=>c.product===p).length;
+    const comm = DB.issued.filter(c=>c.product===p).reduce((s,c)=>s+calcComm(p,c.amount),0);
+    return `<div class="prod-card">
+      <div class="name">${p}</div>
+      <div class="count">${cnt} לקוחות</div>
+      <div class="amount">הופק: ${iCnt} | עמלות: ${fmt(comm)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════
+let currentSheet = '';
+let currentEditIdx = -1;
+
+function prodOpts(selected) {
+  return ALL_PRODUCTS.map(p=>`<option value="${p}"${p===selected?' selected':''}>${p}</option>`).join('');
+}
+function compOpts() {
+  return `<option value="">– בחרי –</option>`+COMPANIES.map(c=>`<option>${c}</option>`).join('');
+}
+
+function editRow(sheet, idx) {
+  openModal(sheet, DB[sheet][idx]);
+  currentEditIdx = idx; // set AFTER openModal (which resets to -1)
+  const title = document.getElementById('modal-title');
+  title.textContent = title.textContent.replace('הוספת','עריכת');
+}
+
+function openModal(sheet, prefill) {
+  currentSheet = sheet;
+  currentEditIdx = -1;
+  const pf = prefill || {};
+  const titles = {pre:'טרום פגישה',post:'בוצעה פגישה',released:'שוחרר לחברות',issued:'הופק',annuity:'קצבה מיידית',future:'לקוח עתידי',payment:'תשלום עמלות'};
+  document.getElementById('modal-title').textContent = sheet==='payment' ? 'תיעוד תשלום עמלות' : `הוספת לקוח – ${titles[sheet]||''}`;
+
+  const sel = (opts, val) => opts.map(s=>`<option${s===val?' selected':''}>${s}</option>`).join('');
+
+  let html = '';
+  if (sheet==='pre') {
+    html = `
+      <div class="field"><label>שם מלא *</label><input id="f_name" value="${pf.name||''}"></div>
+      <div class="field"><label>ת.ז.</label><input id="f_id" value="${pf.id||''}"></div>
+      <div class="field"><label>סטטוס *</label><select id="f_status">${sel(STATUS_PRE, pf.status||STATUS_PRE[0])}</select></div>
+      <div class="field"><label>הערות</label><textarea id="f_notes">${pf.notes||''}</textarea></div>`;
+  } else if (sheet==='post') {
+    html = `
+      <div class="field"><label>שם מלא *</label><input id="f_name" value="${pf.name||''}"></div>
+      <div class="field"><label>ת.ז.</label><input id="f_id" value="${pf.id||''}"></div>
+      <div class="field"><label>סטטוס *</label><select id="f_status">${sel(STATUS_POST, pf.status||STATUS_POST[0])}</select></div>`;
+  } else if (sheet==='released') {
+    html = `
+      <div class="field"><label>שם מלא *</label><input id="f_name" value="${pf.name||''}"></div>
+      <div class="field"><label>ת.ז.</label><input id="f_id" value="${pf.id||''}"></div>
+      <div class="field"><label>מוצר *</label><select id="f_product" onchange="updateAmtLabel()">${prodOpts(pf.product||'')}</select></div>
+      <div class="field"><label>חברה</label><select id="f_company"><option value="">– בחרי –</option>${COMPANIES.map(c=>`<option${c===pf.company?' selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="field"><label>תאריך הצעה (DD/MM/YYYY)</label><input id="f_date" type="text" value="${pf.date||''}" placeholder="לדוג׳ 22/04/2026"></div>
+      <div class="field"><label id="amt_lbl">סכום (₪)</label><input id="f_amount" type="number" value="${pf.amount||''}" oninput="updateCommPreview()"></div>
+      <div id="comm_preview" style="display:none" class="comm-preview"></div>
+      <div class="field"><label>הערות</label><textarea id="f_notes">${pf.notes||''}</textarea></div>`;
+  } else if (sheet==='issued') {
+    html = `
+      <div class="field"><label>שם מלא *</label><input id="f_name" value="${pf.name||''}"></div>
+      <div class="field"><label>ת.ז.</label><input id="f_id" value="${pf.id||''}"></div>
+      <div class="field"><label>מוצר *</label><select id="f_product" onchange="updateAmtLabel();updateIssuedCompanies()">${prodOpts(pf.product||'')}</select></div>
+      <div class="field"><label>חברה</label><select id="f_company"><option value="">– בחרי –</option>${COMPANIES.map(c=>`<option${c===pf.company?' selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="field"><label>מספר פוליסה *</label><input id="f_policynum" value="${pf.policyNum||''}" placeholder="123456789"></div>
+      <div class="field"><label>תאריך הפקה</label><input id="f_issuedate" type="date" value="${pf.issueDate||new Date().toISOString().slice(0,10)}"></div>
+      <div class="field"><label id="amt_lbl">סכום / פרמיה (₪)</label><input id="f_amount" type="number" value="${pf.amount||''}" oninput="updateCommPreview()"></div>
+      <div id="comm_preview" style="display:none" class="comm-preview"></div>
+      <div class="field"><label>הערות</label><textarea id="f_notes">${pf.notes||''}</textarea></div>`;
+  } else if (sheet==='annuity') {
+    html = `
+      <div class="field"><label>שם מלא *</label><input id="f_name" value="${pf.name||''}"></div>
+      <div class="field"><label>ת.ז.</label><input id="f_id" value="${pf.id||''}"></div>
+      <div class="field"><label>חברה</label><select id="f_company"><option value="">– בחרי –</option>${COMPANIES_ANNUITY.map(c=>`<option${c===(pf.company||'')?' selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="field"><label>תאריך הפקה</label><input id="f_issuedate" type="date" value="${pf.issueDate||new Date().toISOString().slice(0,10)}"></div>
+      <div class="field"><label>סכום ניוד (₪)</label><input id="f_amount" type="number" value="${pf.amount||''}" oninput="updateAnnuityPreview()"></div>
+      <div id="annuity_preview" style="display:none" class="comm-preview"></div>
+      <div class="field"><label>הערות</label><textarea id="f_notes">${pf.notes||''}</textarea></div>`;
+  } else if (sheet==='future') {
+    html = `
+      <div class="field"><label>שם מלא *</label><input id="f_name" value="${pf.name||''}"></div>
+      <div class="field"><label>טלפון</label><input id="f_phone" value="${pf.phone||''}"></div>
+      <div class="field"><label>תאריך לחזור אליהם</label><input id="f_calldate" type="date" value="${pf.calldate||''}"></div>
+      <div class="field"><label>פוטנציאל / עניין</label><input id="f_potential" value="${pf.potential||''}"></div>
+      <div class="field"><label>הערות</label><textarea id="f_notes">${pf.notes||''}</textarea></div>
+      <div class="field"><label>סטטוס</label><select id="f_fstatus">${sel(STATUS_FUT, pf.status||STATUS_FUT[0])}</select></div>`;
+  } else if (sheet==='payment') {
+    html = `
+      <div class="field"><label>תאריך קבלה *</label><input id="f_paydate" type="date" value="${pf.paydate||new Date().toISOString().slice(0,10)}"></div>
+      <div class="field"><label>סכום שהתקבל (₪) *</label><input id="f_payamt" type="number" value="${pf.amount||''}" placeholder="0"></div>
+      <div class="field"><label>הערות</label><textarea id="f_notes">${pf.notes||''}</textarea></div>`;
+  }
+
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('overlay').classList.add('open');
+  if (sheet==='released' || sheet==='issued') { updateAmtLabel(); }
+  if (sheet==='issued') { updateIssuedCompanies(); }
+  if (sheet==='annuity') { updateAnnuityPreview(); }
+}
+
+function updateAmtLabel() {
+  const p = document.getElementById('f_product')?.value||'';
+  const lbl = document.getElementById('amt_lbl');
+  if (lbl) lbl.textContent = amountLabel(p);
+  updateCommPreview();
+}
+
+function updateIssuedCompanies() {
+  const p = document.getElementById('f_product')?.value||'';
+  const sel = document.getElementById('f_company');
+  if (!sel) return;
+  const list = p === 'פיננסים ניוד - חבר' ? ['אנליסט'] : COMPANIES;
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">– בחרי –</option>` +
+    list.map(c=>`<option${c===cur?' selected':''}>${c}</option>`).join('');
+  if (p === 'פיננסים ניוד - חבר') sel.value = 'אנליסט';
+}
+
+function updateCommPreview() {
+  const p = document.getElementById('f_product')?.value||'';
+  const a = document.getElementById('f_amount')?.value||0;
+  const box = document.getElementById('comm_preview');
+  if (!box) return;
+  const c = calcComm(p,a);
+  if (c > 0) {
+    box.style.display='block';
+    box.textContent = `💰 עמלה חזויה: ${fmt(c)}  (${commLabel(p)})`;
+  } else { box.style.display='none'; }
+}
+
+function updateAnnuityPreview() {
+  const a = document.getElementById('f_amount')?.value||0;
+  const box = document.getElementById('annuity_preview');
+  if (!box) return;
+  const c = calcComm('ניוד לקצבה מיידית', a);
+  if (c > 0) {
+    box.style.display='block';
+    box.textContent = `💰 עמלה חזויה: ${fmt(c)}  (₪1,000 לכל מיליון, יחסי)`;
+  } else { box.style.display='none'; }
+}
+
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+function g(id) { const el=document.getElementById(id); return el?el.value.trim():''; }
+
+function saveClient() {
+  const name = g('f_name');
+  if (!name && currentSheet !== 'payment') { alert('נא למלא שם מלא'); return; }
+  let c = {};
+  if (currentSheet==='pre')
+    c = {name, id:g('f_id'), status:g('f_status'), notes:g('f_notes')};
+  else if (currentSheet==='post')
+    c = {name, id:g('f_id'), status:g('f_status')};
+  else if (currentSheet==='released')
+    c = {name, id:g('f_id'), product:g('f_product'), company:g('f_company'), date:g('f_date'), amount:g('f_amount'), notes:g('f_notes'), status:'בתהליך הפקה'};
+  else if (currentSheet==='issued') {
+    const pn = g('f_policynum');
+    if (!pn) { alert('נא למלא מספר פוליסה'); return; }
+    c = {name, id:g('f_id'), product:g('f_product'), company:g('f_company'), policyNum:pn, issueDate:g('f_issuedate'), amount:g('f_amount'), notes:g('f_notes'), status:'הופק'};
+  } else if (currentSheet==='annuity')
+    c = {name, id:g('f_id'), company:g('f_company'), issueDate:g('f_issuedate'), amount:g('f_amount'), notes:g('f_notes')};
+  else if (currentSheet==='future')
+    c = {name, phone:g('f_phone'), calldate:g('f_calldate'), potential:g('f_potential'), notes:g('f_notes'), status:g('f_fstatus')};
+  else if (currentSheet==='payment') {
+    const payamt = g('f_payamt');
+    if (!payamt) { alert('נא למלא סכום'); return; }
+    c = {paydate:g('f_paydate'), amount:payamt, notes:g('f_notes')};
+    if (currentEditIdx >= 0) {
+      DB.payments[currentEditIdx] = c;
+      toast('✏️ התשלום עודכן');
+    } else {
+      DB.payments.push(c);
+      toast('✓ התשלום נשמר');
+    }
+    persist(); renderPayments(); renderDash1(); closeModal();
+    return;
+  }
+
+  if (currentEditIdx >= 0) {
+    DB[currentSheet][currentEditIdx] = c;
+    toast('✏️ הרשומה עודכנה בהצלחה');
+  } else {
+    DB[currentSheet].push(c);
+    toast('✓ הלקוח נוסף בהצלחה');
+  }
+  persist(); renderAll(); closeModal();
+}
+
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+function updateClock() {
+  const n=new Date();
+  document.getElementById('clock').textContent=
+    n.toLocaleDateString('he-IL')+' | '+n.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+}
+setInterval(updateClock,1000); updateClock();
+
+renderAll();
+</script>
+</body>
+</html>
