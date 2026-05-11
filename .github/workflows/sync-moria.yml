@@ -1,0 +1,39 @@
+name: Sync moria CRM to lago-tools
+
+on:
+  push:
+    branches: [main]
+    paths: [crm_live.html]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout lago-tools
+        uses: actions/checkout@v4
+        with:
+          repository: shay2301/lago-tools
+          token: ${{ secrets.LAGO_TOOLS_PUSH_TOKEN }}
+          path: lago-tools
+
+      - name: Checkout amalot
+        uses: actions/checkout@v4
+        with:
+          path: amalot
+
+      - name: Copy crm_live.html into moria
+        run: cp amalot/crm_live.html lago-tools/apps/moria/public/crm.html
+
+      - name: Commit & push if changed
+        working-directory: lago-tools
+        run: |
+          git config user.name "moria-sync[bot]"
+          git config user.email "moria-sync@users.noreply.github.com"
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add apps/moria/public/crm.html
+            git commit -m "chore(moria): sync crm.html from moriahuri12-spec/amalot@${{ github.sha }}"
+            git push
+          else
+            echo "No changes."
+          fi
